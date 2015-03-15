@@ -121,11 +121,12 @@ wss.on('request', function(request) {
     }
 
     //Run commands interactively straight from url
+    sshcommand = "";
     if (request.resource.match('^/cmd/')) {
         sshcommand = request.resource.replace('/cmd/', '');
         sshcommand = decodeURIComponent(sshcommand);
         //Echo the command so this is more verbose
-        sshcommand = "echo "+sshuser+sshhost+"'$ "+sshcommand+"' && "+sshcommand
+        sshcommand = "echo "+sshuser+sshhost+"'$ "+sshcommand+"' && "+sshcommand;
     }
     conn.on('message', function(msg) {
         var data = JSON.parse(msg.utf8Data);
