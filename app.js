@@ -59,7 +59,7 @@ if (opts.sshhost) {
 }
 
 if (opts.sshauth) {
-	sshauth = opts.sshauth
+    sshauth = opts.sshauth
 }
 
 if (opts.sshuser) {
@@ -81,6 +81,11 @@ var httpserv;
 
 var app = express();
 app.get('/wetty/ssh/:user', function(req, res) {
+    res.sendfile(__dirname + '/public/wetty/index.html');
+});
+
+//Match all so even directories can be given here
+app.get('/cmd/*', function(req, res) {
     res.sendfile(__dirname + '/public/wetty/index.html');
 });
 app.use('/', express.static(path.join(__dirname, 'public')));
@@ -108,10 +113,19 @@ wss.on('request', function(request) {
         sshuser = request.resource;
         sshuser = sshuser.replace('/wetty/ssh/', '');
     }
+
     if (sshuser) {
         sshuser = sshuser + '@';
     } else if (globalsshuser) {
         sshuser = globalsshuser + '@';
+    }
+
+    //Run commands interactively straight from url
+    if (request.resource.match('^/cmd/')) {
+        sshcommand = request.resource.replace('/cmd/', '');
+        sshcommand = decodeURIComponent(sshcommand);
+        //Echo the command so this is more verbose
+        sshcommand = "echo "+sshuser+sshhost+"'$ "+sshcommand+"' && "+sshcommand
     }
     conn.on('message', function(msg) {
         var data = JSON.parse(msg.utf8Data);
@@ -123,7 +137,7 @@ wss.on('request', function(request) {
                     rows: 30
                 });
             } else {
-                term = pty.spawn('ssh', [sshuser + sshhost, '-p', sshport, '-o', 'PreferredAuthentications=' + sshauth], {
+                term = pty.spawn('ssh', [sshuser + sshhost, '-p', sshport, '-o', 'PreferredAuthentications=' + sshauth, sshcommand], {
                     name: 'xterm-256color',
                     cols: 80,
                     rows: 30
