@@ -126,7 +126,9 @@ wss.on('request', function(request) {
         sshcommand = request.resource.replace('/cmd/', '');
         sshcommand = decodeURIComponent(sshcommand);
         //Echo the command so this is more verbose
-        sshcommand = "echo "+sshuser+sshhost+"'$ "+sshcommand+"' && "+sshcommand;
+        sshcommand = "echo "+sshuser+"$(hostname)"+"'$ "+sshcommand+"' && "+sshcommand;
+        // When command stops start interactive shell
+        sshcommand = sshcommand+"; /bin/bash -i";
     }
     conn.on('message', function(msg) {
         var data = JSON.parse(msg.utf8Data);
@@ -138,7 +140,7 @@ wss.on('request', function(request) {
                     rows: 30
                 });
             } else {
-                term = pty.spawn('ssh', [sshuser + sshhost, '-p', sshport, '-o', 'PreferredAuthentications=' + sshauth, sshcommand], {
+                term = pty.spawn('ssh', [sshuser + sshhost, '-p', sshport, '-o', 'PreferredAuthentications=' + sshauth,'-t', sshcommand], {
                     name: 'xterm-256color',
                     cols: 80,
                     rows: 30
