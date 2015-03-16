@@ -140,7 +140,7 @@ wss.on('request', function(request) {
                     rows: 30
                 });
             } else {
-                term = pty.spawn('ssh', [sshuser + sshhost, '-p', sshport, '-o', 'PreferredAuthentications=' + sshauth,'-t', sshcommand], {
+                term = pty.spawn('/bin/bash', [], {
                     name: 'xterm-256color',
                     cols: 80,
                     rows: 30
